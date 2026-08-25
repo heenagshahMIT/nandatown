@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: Apache-2.0
+# Supply-chain scenario: goods flow through multiple stages.
+name: supply_chain_drop20
+description: "4-stage supply chain: supplier -> manufacturer -> distributor -> retailer."
+
+tier: 1
+seed: 42
+
+agents:
+  count: 4
+  brain: state-machine
+  roles:
+    - name: supplier
+      count: 1
+    - name: manufacturer
+      count: 1
+    - name: distributor
+      count: 1
+    - name: retailer
+      count: 1
+
+layers:
+  transport: in_memory
+  comms: nest_native
+  identity: did_key
+  registry: in_memory
+  auth: jwt
+  trust: score_average
+  payments: prepaid_credits
+  coordination: contract_net
+  negotiation: alternating_offers
+  memory: blackboard
+  privacy: noop
+  datafacts: datafacts_v1
+
+task:
+  type: supply_chain
+  config:
+    items_per_round: 3
+    rounds: 5
+
+failures:
+  message_drop: 0.2
+
+duration: "ticks: 10000"
+
+metrics:
+  - success_rate
+  - message_count
+  - agent_count
+
+output:
+  trace: ./traces/supply_chain_drop20.jsonl
+PS C:\Users\heena\Documents> nest run my_supply_chain.yaml
+Running scenario: supply_chain_drop20
+  agents: 4  seed: 42  ticks: 10000
+Trace written to: traces\supply_chain_drop20.jsonl
+PS C:\Users\heena\Documents> nest inspect .\traces\supply_chain_drop20.jsonl
+NEST Trace Summary
+========================================
+  Total events:       66
+  Agents:             4
+  Messages:           46
+  Correlation IDs:    29
+  Duration:           0.0 ticks
+
+Event breakdown:
+  dropped                  12
+  receive                  17
+  send                     29
+  start                     4
+  stop                      4
+
+Top agents by sends:
+  supplier-0           sent=  15  recv=   3
+  manufacturer-0       sent=   6  recv=   6
+  distributor-0        sent=   5  recv=   5
+  retailer-0           sent=   3  recv=   3
